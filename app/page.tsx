@@ -17,6 +17,7 @@ export default function MainSite() {
           arg.endsWith('}') &&
           arg.includes(':')
         ) {
+          console.log('OBJECT');
           const validJSONStr = arg.replace(
             /(['"])?([a-zA-Z0-9_]+)(['"])?:/g,
             '"$2": '
@@ -24,6 +25,7 @@ export default function MainSite() {
           const obj = JSON.parse(`${validJSONStr}`);
           return obj;
         } else {
+          console.log('OTHER');
           return arg;
         }
       } catch {
@@ -39,27 +41,30 @@ export default function MainSite() {
     };
     const functionString: any = target.functionName.value.trim();
     const functionName = functionString.split('(')[0];
-    const functionArgs = functionString
-      .split('(')[1]
-      ?.split(')')[0]
-      ?.split(',')
-      .map((arg: any) => arg.trim());
+    const isString = functionString.split('(')[1]?.split(')')[0].includes('"');
+    const isArray = functionString.split('(')[1]?.split(')')[0].includes('[');
 
-    console.log(functionArgs);
-
+    const functionArgs = isString
+      ? functionString.split('(')[1]?.split(')')[0].replaceAll('"', '')
+      : isArray
+      ? JSON.parse(functionString.split('(')[1]?.split(')')[0])
+      : functionString
+          .split('(')[1]
+          ?.split(')')[0]
+          ?.split(',')
+          .map((arg: any) => arg.trim());
     const functions = await import('./utils');
-    // @ts-ignore
-    console.log(functions);
     // @ts-ignore
     if (prompt.current && functions[functionName]) {
       const result = functionArgs
         ? // @ts-ignore
-          functions[functionName](...parseArguments(functionArgs))
+          isString || isArray
+          ? // @ts-ignore
+            functions[functionName](functionArgs)
+          : // @ts-ignore
+            functions[functionName](...parseArguments(functionArgs))
         : // @ts-ignore
           functions[functionName]();
-
-      console.log(result);
-
       if (prompt.current) prompt.current.innerText = `${result}`;
     }
   };
@@ -78,6 +83,7 @@ export default function MainSite() {
             name='functionName'
             placeholder='Function...'
             type='text'
+            autocomplete='off'
             className='px-4 py-2 rounded-full text-slate-900 focus:outline-green-500 w-full'
           />
           <button type='submit' className='rounded-full p-2 bg-green-500'>
