@@ -2,9 +2,9 @@
 
 export const isPalindrome = (word: string) => {
   const reversedWord = Array.from(
-    word.replaceAll('/W/g', '').trim().toLowerCase()
+    word.replaceAll(/\W/g, '').trim().toLowerCase()
   )
     .reverse()
     .join('');
-  return `${reversedWord === word.replaceAll('/W/g', '').trim().toLowerCase()}`;
+  return `${reversedWord === word.replaceAll(/\W/g, '').trim().toLowerCase()}`;
 };
